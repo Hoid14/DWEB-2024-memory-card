@@ -54,7 +54,7 @@ const movesCounter = () => {
 };
 
 //YOUR CODE STARTS HERE
-//Function to choose four random cards
+//Function to choose eight random cards
 const generateRandom = (size = 4) => {
   //temporary array
   let tempArray = [...items];
@@ -72,14 +72,32 @@ const generateRandom = (size = 4) => {
   }
   return cardValues;
 };
+// Funcion para barajar el array
+const shuffleArray = (array) => {
+  let arrayCopy = [...array]
+  let maxIndex = arrayCopy.length-1
+  while(maxIndex!=0){
+    //siempre va a dar un numero menor que el del maxindex, nunca uno igual
+    randomIndex = Math.floor(Math.random()*maxIndex)
+    //intercambia el contenido de un indice a otro
+    temp = arrayCopy[maxIndex]
+    arrayCopy[maxIndex] = arrayCopy[randomIndex]
+    arrayCopy[randomIndex] = temp
+    maxIndex--;
+  }
+  return arrayCopy
+}
 
 // Function to generate matrix for the game
 
 const matrixGenerator = (cardValues, size = 4) => {
   gameContainer.innerHTML = "";
+  //duplica las cartas en un solo array
   cardValues = [...cardValues, ...cardValues];
   //simple shuffle, DO IT YOURSELF
   //Your code here
+  cardValues = shuffleArray(cardValues)
+
   for (let i = 0; i < size * size; i++) {
     /*
         Create Cards
@@ -95,20 +113,71 @@ const matrixGenerator = (cardValues, size = 4) => {
      </div>
      `;
   }
-  //Grid
+  // Establece el número de columnas en el contenedor del juego basándose en el valor de 'size'.
+  // Cada columna tiene un tamaño automático para adaptarse al contenido.
   gameContainer.style.gridTemplateColumns = `repeat(${size},auto)`;
 
+  
   //Cards
   cards = document.querySelectorAll(".card-container");
+  
+  let cardOne=null
+  let cardTwo=null
+  //bandera para prevenir otros click
+  let lockBoard=false
   cards.forEach((card) => {
     card.addEventListener("click", () => {
-      card.classList.add("flipped");
-      movesCounter();
-
       //Your code starts here... This is the hard part of this code
-
       //Logic Needed:
       //1. We need to check if the first card is not already matched. We can do that with the class "matched"
+      //si esta carta tiene matched, no hacemos nada
+      if(lockBoard){
+        return
+      }
+      if(card.classList.contains('flipped')){
+        return
+      }
+      if(card.classList.contains('matched')){
+        return
+      }
+      //sino tiene matched
+      else{
+        //revisamos si ya hay una tarjeta asignada
+        //y comparamos si la cardOne es igual a la cardTwo
+        if(cardOne){
+          cardTwo = card.getAttribute('data-card-value')
+          cardMatched = document.querySelector('.matched')
+          card.classList.add("flipped");
+          lockBoard=true
+          
+          //si aciertan
+          if(cardOne===cardTwo){
+            cardOne = null
+            cardTwo = null
+            lockBoard = false
+          }
+          //sino aciertan
+          else{
+            cardOne = null
+            cardTwo = null
+            
+            setTimeout(()=>{
+              cardMatched.classList.remove('flipped');
+              card.classList.remove('flipped');
+              lockBoard = false
+            },1000)
+          }
+          cardMatched.classList.remove('matched')
+          movesCounter();
+        }
+        //si card one no tiene nada
+        else{
+          card.classList.add('matched')
+          cardOne = card.getAttribute('data-card-value')
+          card.classList.add("flipped");
+        }
+      }
+
       //2. flip the card. If there are no first ones, asign that card as first card and get the value of the card
       //HINT: The value is on the attribute data-card-value
 
