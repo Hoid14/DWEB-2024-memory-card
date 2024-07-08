@@ -53,6 +53,11 @@ const movesCounter = () => {
   moves.innerHTML = `<span>Pasos:</span>${movesCount}`;
 };
 
+//Function for counting winCount
+const movesWinCounter = () => {
+  winCount += 1;
+};
+
 //YOUR CODE STARTS HERE
 //Function to choose eight random cards
 const generateRandom = (size = 4) => {
@@ -130,7 +135,7 @@ const matrixGenerator = (cardValues, size = 4) => {
       //Your code starts here... This is the hard part of this code
       //Logic Needed:
       //1. We need to check if the first card is not already matched. We can do that with the class "matched"
-      //si esta carta tiene matched, no hacemos nada
+      //si esta carta tiene matched, lockboard o flipped no hacemos nada
       if(lockBoard){
         return
       }
@@ -140,50 +145,71 @@ const matrixGenerator = (cardValues, size = 4) => {
       if(card.classList.contains('matched')){
         return
       }
-      //sino tiene matched
-      else{
+      //si es falsa en todas las anteriores
+      else {
+        //3 If there is a first card flipped, it should flipped the second card after anohter click and ALSO move the counter
         //revisamos si ya hay una tarjeta asignada
-        //y comparamos si la cardOne es igual a la cardTwo
+        //si ya hay una cardOne entonces se asigna una cardTwo
         if(cardOne){
+          //obtiene el nombre de la tarjeta
           cardTwo = card.getAttribute('data-card-value')
+          //busca la carta con matched
           cardMatched = document.querySelector('.matched')
+          //volte la tarjeta seleccionada
           card.classList.add("flipped");
+          //bloquea el tablero
           lockBoard=true
-          
-          //si aciertan
+          //4. If two cards are flipped, code should compare their value
+          //4.1 If both cards have the same value, they're a match so the code should assign one winCount
+          //si son iguales se establece cardOne y cardTwo en null y se desbloquea el tablero
+          //aumenta el contador
+          movesCounter();
           if(cardOne===cardTwo){
             cardOne = null
             cardTwo = null
             lockBoard = false
+            movesWinCounter()
+            if(winCount===8){
+              result.innerHTML=`
+              <h2>Ganaste SIIIUUUU</h2>
+              <br>
+              <h1>Pasos: ${movesCount}</h1>
+              <br>`
+              gameContainer.innerHTML = "";
+              controls.classList.remove("hide");
+              startButton.classList.remove("hide")
+              stopButton.classList.add("hide");
+            }
           }
-          //sino aciertan
+          //sino aciertan se establece cardOne y cardTwo en null
           else{
             cardOne = null
             cardTwo = null
-            
+            //despues de un segundo, se vuelven a voltear la card con Matched y la segunda card volteada y se desbloquea el tablero
             setTimeout(()=>{
               cardMatched.classList.remove('flipped');
               card.classList.remove('flipped');
               lockBoard = false
             },1000)
           }
+          //en cualquier caso se quita el matched de la tarjeta
           cardMatched.classList.remove('matched')
-          movesCounter();
         }
-        //si card one no tiene nada
+        //2. flip the card. If there are no first ones, asign that card as first card and get the value of the card
+        //HINT: The value is on the attribute data-card-value
+        //si card one es null se le agrega matched, se guarda su nombre en cardOne y se voltea
         else{
-          card.classList.add('matched')
-          cardOne = card.getAttribute('data-card-value')
+          card.classList.add('matched');
+          cardOne = card.getAttribute('data-card-value');
           card.classList.add("flipped");
         }
       }
 
-      //2. flip the card. If there are no first ones, asign that card as first card and get the value of the card
-      //HINT: The value is on the attribute data-card-value
+      
 
-      //3 If there is a first card flipped, it should flipped the second card after anohter click and ALSO move the counter
-      //4. If two cards are flipped, code should compare their value
-      //4.1 If both cards have the same value, they're a match so the code should assign one winCount
+      
+      
+      
       //HINT: A card is match if it has the class matched
       //HINT # 2: User wins if and only if It matches all the cards, how can you check that using the cardValues array?
       //HINT # 3: If user wins, game must stop. Don't worry, you already have a named function for that below ;) ;)
@@ -194,7 +220,7 @@ const matrixGenerator = (cardValues, size = 4) => {
     });
   });
 };
-
+let idInterval=null;
 //Start game
 startButton.addEventListener("click", () => {
   movesCount = 0;
@@ -208,6 +234,8 @@ startButton.addEventListener("click", () => {
   //Hint: You already have a function that checks the time each second, use it wisely
   //YOUR CODE HERE
   moves.innerHTML = `<span>Pasos:</span> ${movesCount}`;
+  timeGenerator()
+  idInterval = setInterval(timeGenerator,1000)
   initializer();
 });
 
@@ -220,6 +248,9 @@ stopButton.addEventListener(
     startButton.classList.remove("hide");
     // timer created with setInterVal needs to be cleared
     //YOUR CODE HERE
+    seconds = 0;
+    minutes = 0;
+    clearInterval(idInterval)
   })
 );
 
